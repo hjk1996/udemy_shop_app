@@ -16,7 +16,7 @@ class CartItem {
 }
 
 class Cart with ChangeNotifier {
-  final Map<String, CartItem> _items = {};
+  Map<String, CartItem> _items = {};
 
   Map<String, CartItem> get items {
     return {..._items};
@@ -66,6 +66,11 @@ class Cart with ChangeNotifier {
   void removeItem(String productId) {
     // map에서 특정 key 값을 가지고 있는 item을 제거함.
     _items.remove(productId);
+    notifyListeners();
+  }
+
+  void clear() {
+    _items = {};
     notifyListeners();
   }
 }

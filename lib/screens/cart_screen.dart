@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../providers/cart.dart';
 import '../widgets/cart_item.dart';
+import '../providers/orders.dart';
+import '../screens/orders_screen.dart';
 
 class TotalPriceBar extends StatelessWidget {
   const TotalPriceBar({
@@ -35,7 +37,17 @@ class TotalPriceBar extends StatelessWidget {
               backgroundColor: Theme.of(context).accentColor,
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                final cartItemList = cart.items.values.toList();
+                // order의 변화는 들을 필요가 없음
+                Provider.of<Orders>(context, listen: false)
+                    .addOrder(cartItemList, cart.totalAmount);
+                // 하지만 카트를 비워야하므로 cart의 변화는 들어야함.
+                cart.clear();
+                if (cartItemList.isNotEmpty) {
+                  Navigator.of(context).pushNamed(OrderScreen.routeName);
+                }
+              },
               child: Text('Order Now'),
               style: TextButton.styleFrom(
                   textStyle: TextStyle(color: Theme.of(context).primaryColor)),

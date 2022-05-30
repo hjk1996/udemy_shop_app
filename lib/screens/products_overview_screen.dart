@@ -4,6 +4,7 @@ import 'package:flutter_complete_guide/providers/products.dart';
 import 'package:flutter_complete_guide/screens/cart_screen.dart';
 import 'package:provider/provider.dart';
 
+import '../widgets/app_drawer.dart';
 import '../providers/product.dart';
 import '../widgets/product_item.dart';
 import '../widgets/product_grid.dart';
@@ -69,6 +70,8 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
           )
         ],
       ),
+      // drawer는 옆에서 튀어나오는 햄버거 메뉴
+      drawer: AppDrawer(),
       body: ProductsGrid(_showOnlyFavorites),
     );
   }
