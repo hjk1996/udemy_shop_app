@@ -69,6 +69,29 @@ class Cart with ChangeNotifier {
     notifyListeners();
   }
 
+  // 하나(수량)의 아이템만 없앰
+  void removeSingleItem(String productId) {
+    // 찾는 아이템이 없으면 그냥 함수 종료
+    if (!_items.containsKey(productId)) {
+      return;
+    }
+
+    if (_items[productId]!.quantity > 1) {
+      _items.update(
+          productId,
+          (prev) => CartItem(
+                id: prev.id,
+                productId: prev.productId,
+                title: prev.title,
+                quantity: prev.quantity - 1,
+                price: prev.price,
+              ));
+    } else {
+      _items.remove(productId);
+    }
+    notifyListeners();
+  }
+
   void clear() {
     _items = {};
     notifyListeners();

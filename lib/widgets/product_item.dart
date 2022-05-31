@@ -53,6 +53,23 @@ class ProductItem extends StatelessWidget {
               icon: const Icon(Icons.shopping_cart),
               onPressed: () {
                 cart.addItem(product.id, product.price, product.title);
+                Scaffold.of(context).hideCurrentSnackBar();
+                // neartest scaffold widget == ProductOverviewScreen
+                // SnackBar는 하단 팝업을 의미함.
+                Scaffold.of(context).showSnackBar(SnackBar(
+                  content: Text(
+                    'HI',
+                    textAlign: TextAlign.center,
+                  ),
+                  duration: Duration(seconds: 1),
+                  // SnackBar widget을 눌렀을 때 실행할 행동을 정의할 수 있음.
+                  action: SnackBarAction(
+                    label: 'UNDO',
+                    onPressed: () {
+                      cart.removeSingleItem(product.id);
+                    },
+                  ),
+                ));
               },
               color: Theme.of(context).accentColor,
             ),
