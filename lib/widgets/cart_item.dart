@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_complete_guide/providers/cart.dart';
 import 'package:provider/provider.dart';
@@ -37,6 +38,31 @@ class CartItemWidget extends StatelessWidget {
       direction: DismissDirection.startToEnd,
       // onDismissed를 통해 swipe 이후에 실행할 행동에 대해 정의할 수 있다.
       // direction을 인자로 전달받기 때문에 swipe 방향에 따라 행동을 달리 정의할 수 있음.
+      // confirmDismiss의 값이 false라면 onDismissed에서 정의된 행동이 실행되지 않고,
+      // confirmDismiss의 값이 true라면 onDismissed에서 정의된 행동이 실행됨.
+      confirmDismiss: (direction) {
+        return showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+                  title: Text('Are you sure?'),
+                  content:
+                      Text('Do you want to remove the item from the cart?'),
+                  actions: <Widget>[
+                    TextButton(
+                        onPressed: () {
+                          // dialog를 pop하면서 false를 반환함.
+                          Navigator.of(ctx).pop(false);
+                        },
+                        child: Text('No')),
+                    TextButton(
+                        onPressed: () {
+                          // dialog를 pop하면서 true를 반환함.
+                          Navigator.of(ctx).pop(true);
+                        },
+                        child: Text('Yes')),
+                  ],
+                ));
+      },
       onDismissed: (direction) {
         Provider.of<Cart>(context, listen: false).removeItem(productId);
       },

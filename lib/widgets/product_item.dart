@@ -53,10 +53,10 @@ class ProductItem extends StatelessWidget {
               icon: const Icon(Icons.shopping_cart),
               onPressed: () {
                 cart.addItem(product.id, product.price, product.title);
-                Scaffold.of(context).hideCurrentSnackBar();
-                // neartest scaffold widget == ProductOverviewScreen
-                // SnackBar는 하단 팝업을 의미함.
-                Scaffold.of(context).showSnackBar(SnackBar(
+                // widget에서 가장 가까이 있는 scaffold에 message를 보냄.
+                // 이 경우에는 ProductOverViewScreen
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text(
                     'HI',
                     textAlign: TextAlign.center,

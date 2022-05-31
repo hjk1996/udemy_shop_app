@@ -8,7 +8,8 @@ import './screens/product_detail_screen.dart';
 import './screens/cart_screen.dart';
 import './providers/orders.dart';
 import './screens/orders_screen.dart';
-
+import './screens/user_products_screen.dart';
+import './screens/edit_product_screen.dart';
 
 // provider를 통해 data를 제공해주기 위해서는 모든 interested widgets에 대해
 // 가장 높은 포인트에서 data를 제공해줘야한다.
@@ -39,7 +40,9 @@ class MyApp extends StatelessWidget {
         routes: {
           ProductDetailScreen.routeName: (ctx) => ProductDetailScreen(),
           CartScreen.routeName: (ctx) => CartScreen(),
-          OrderScreen.routeName: (ctx) => OrderScreen()
+          OrderScreen.routeName: (ctx) => OrderScreen(),
+          UserProductsScreen.routeName: (ctx) => UserProductsScreen(),
+          EditProductScreen.routeName: (ctx) => EditProductScreen()
         },
       ),
     );
