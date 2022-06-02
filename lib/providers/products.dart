@@ -70,8 +70,15 @@ class Products with ChangeNotifier {
 
   // 리스트 요소가 변경될 때만 notify함.
   void addProduct(Product item) {
+    final product = Product(
+      id: DateTime.now().toString(),
+      description: item.description,
+      imageUrl: item.imageUrl,
+      price: item.price,
+      title: item.title,
+    );
     // list에 아이템을 추가하고
-    _items.add(item);
+    _items.add(product);
     // list가 업데이트 됐다는 것을 listner들에게 알려준다.
     // 소식을 들은 widget은 rebuild된다.
     notifyListeners();

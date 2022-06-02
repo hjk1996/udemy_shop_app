@@ -36,7 +36,7 @@ class ProductItem extends StatelessWidget {
         },
         child: GridTile(
           child: Image.network(
-            product.imageUrl,
+            product.imageUrl!,
             fit: BoxFit.cover,
           ),
           footer: GridTileBar(
@@ -46,13 +46,13 @@ class ProductItem extends StatelessWidget {
               builder: _buildFavoriteIconButton,
             ),
             title: Text(
-              product.title,
+              product.title!,
               textAlign: TextAlign.center,
             ),
             trailing: IconButton(
               icon: const Icon(Icons.shopping_cart),
               onPressed: () {
-                cart.addItem(product.id, product.price, product.title);
+                cart.addItem(product.id!, product.price!, product.title!);
                 // widget에서 가장 가까이 있는 scaffold에 message를 보냄.
                 // 이 경우에는 ProductOverViewScreen
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -66,7 +66,7 @@ class ProductItem extends StatelessWidget {
                   action: SnackBarAction(
                     label: 'UNDO',
                     onPressed: () {
-                      cart.removeSingleItem(product.id);
+                      cart.removeSingleItem(product.id!);
                     },
                   ),
                 ));
