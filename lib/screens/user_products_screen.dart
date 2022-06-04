@@ -28,6 +28,7 @@ class UserProductsScreen extends StatelessWidget {
         ],
       ),
       drawer: AppDrawer(),
+      // RefreshIndicator를 통해 pull-to-refresh를 구현할 수 있다.
       body: RefreshIndicator(
         onRefresh: () async {
           await _refreshProducts(context);

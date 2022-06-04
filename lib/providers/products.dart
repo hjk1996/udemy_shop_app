@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'product.dart';
+import '../models/http_exception.dart';
 
 // with는 mixin
 class Products with ChangeNotifier {
@@ -132,11 +133,24 @@ class Products with ChangeNotifier {
     }
   }
 
-  void updateProduct(String id, Product newProduct) {
+  Future<void> updateProduct(String id, Product newProduct) async {
     // 같은 아이디를 가지는 아이템이 리스트의 몇번째 인덱스에 있는지 확인
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
     // 리스트 내에 해당하는 아이템이 있다면,
     if (prodIndex >= 0) {
+      final url = Uri.parse(
+          'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/products/$id.json');
+
+      // patch는 기존에 존재하는 data를 업데이트 하는 역할을 함.
+      // 기존 data를 drop하지는 않음.
+      await http.patch(url,
+          body: json.encode({
+            'title': newProduct.title,
+            'description': newProduct.description,
+            'imageUrl': newProduct.imageUrl,
+            'price': newProduct.price,
+            'isFavorite': newProduct.isFavorite
+          }));
       // 인덱스에 있는 아이템을 새 프로덕트로 변경.
       _items[prodIndex] = newProduct;
       notifyListeners();
@@ -145,8 +159,24 @@ class Products with ChangeNotifier {
     }
   }
 
-  void removeProduct(String id) {
+  Future<void> removeProduct(String id) async {
+    final url = Uri.parse(
+        'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/products/$id.json');
+    final existingProductIndex =
+        _items.indexWhere((element) => element.id == id);
+    // 잠시 보관하고 있음
+    Product? existingProduct = _items[existingProductIndex];
     _items.removeWhere((product) => product.id == id);
+    final res = await http.delete(url);
+
+    // 만약 오류가 발생하면 리스트에 다시 집어넣음.
+
+    if (res.statusCode >= 400) {
+      _items.insert(existingProductIndex, existingProduct);
+      throw HttpException("Could not delete product");
+    }
+
+    existingProduct = null;
     notifyListeners();
   }
 }
