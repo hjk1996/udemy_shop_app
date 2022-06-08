@@ -43,24 +43,12 @@ class Products with ChangeNotifier {
     // ),
   ];
 
-  // var _showFavoritesOnly = false;
+  final String? authToken;
+  final String? userId;
 
-  // void showFavoritesOnly() {
-  //   _showFavoritesOnly = true;
-  //   notifyListeners();
-  // }
-
-  // void showAll() {
-  //   _showFavoritesOnly = false;
-  //   notifyListeners();
-  // }
+  Products(this.authToken, this._items, this.userId);
 
   List<Product> get items {
-    // if (_showFavoritesOnly) {
-    //   return _items.where(((product) => product.isFavorite == true)).toList();
-    // }
-    // _items의 copy를 반환한다.
-    // 지정되지 않은 방법으로 _item에 접근해서 수정하는 것을 방지하기 위함.
     return [..._items];
   }
 
@@ -72,9 +60,13 @@ class Products with ChangeNotifier {
     return _items.firstWhere((prod) => prod.id == id);
   }
 
-  Future<void> fetchAndSetProducts() async {
-    final url = Uri.parse(
-        'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/products.json');
+  // []는 optional, positional parameter 설정을 위해서 사용함.
+  Future<void> fetchAndSetProducts([bool filterByUser = false]) async {
+    final filterString =
+        filterByUser ? 'orderBy="creatorId"&equalTo="$userId"' : '';
+    // authToken을 이용해 authentication하고, creatorId를 기준으로 정렬하고, userId가 creatorId와 일치하는 제품만 backend에 요청
+    var url = Uri.parse(
+        'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/products.json?auth=$authToken&$filterString');
 
     try {
       final res = await http.get(url);
@@ -82,6 +74,13 @@ class Products with ChangeNotifier {
       if (extractedData == null) {
         return;
       }
+      url = Uri.parse(
+          'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/userFavorites/$userId.json?auth=$authToken');
+
+      // user가 좋아요 누른 아이템 모두 받아옴
+      final favoritesRes = await http.get(url);
+      // favoriteData의 type은 Map임
+      final favoriteData = json.decode(favoritesRes.body);
       final List<Product> loadedProducts = [];
 
       extractedData.forEach(
@@ -94,7 +93,11 @@ class Products with ChangeNotifier {
                   description: prodData['description'],
                   price: prodData['price'],
                   imageUrl: prodData['imageUrl'],
-                  isFavorite: prodData['isFavorite']));
+                  // 유저의 favoriteData 자체가 없으면 null
+                  // 있지만 Map에 존재하지 않으면 false
+                  isFavorite: favoriteData == null
+                      ? false
+                      : favoriteData[id] ?? false));
         },
       );
       _items = loadedProducts;
@@ -106,7 +109,7 @@ class Products with ChangeNotifier {
 
   Future<void> addProduct(Product item) async {
     final url = Uri.parse(
-        'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/products.json');
+        'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/products.json?auth=$authToken');
 
     try {
       final res = await http.post(url,
@@ -115,7 +118,7 @@ class Products with ChangeNotifier {
             'description': item.description,
             'imageUrl': item.imageUrl,
             'price': item.price,
-            'isFavorite': item.isFavorite
+            'creatorId': userId
           }));
 
       final id = json.decode(res.body)['name'];
@@ -141,7 +144,7 @@ class Products with ChangeNotifier {
     // 리스트 내에 해당하는 아이템이 있다면,
     if (prodIndex >= 0) {
       final url = Uri.parse(
-          'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/products/$id.json');
+          'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/products/$id.json?auth=$authToken');
 
       // patch는 기존에 존재하는 data를 업데이트 하는 역할을 함.
       // 기존 data를 drop하지는 않음.
@@ -151,7 +154,6 @@ class Products with ChangeNotifier {
             'description': newProduct.description,
             'imageUrl': newProduct.imageUrl,
             'price': newProduct.price,
-            'isFavorite': newProduct.isFavorite
           }));
       // 인덱스에 있는 아이템을 새 프로덕트로 변경.
       _items[prodIndex] = newProduct;
@@ -163,7 +165,7 @@ class Products with ChangeNotifier {
 
   Future<void> removeProduct(String id) async {
     final url = Uri.parse(
-        'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/products/$id.json');
+        'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/products/$id.json&auth=$authToken');
     final existingProductIndex =
         _items.indexWhere((element) => element.id == id);
     // 잠시 보관하고 있음

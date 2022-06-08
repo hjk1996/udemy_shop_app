@@ -17,6 +17,8 @@ enum FilterOptions {
 }
 
 class ProductOverviewScreen extends StatefulWidget {
+  static const routeName = "/product-overview";
+
   @override
   State<ProductOverviewScreen> createState() => _ProductOverviewScreenState();
 }
@@ -27,6 +29,11 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
 
   @override
   void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
     setState(() {
       _isLoading = true;
     });
@@ -37,7 +44,8 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
         _isLoading = false;
       });
     });
-    super.initState();
+
+    super.didChangeDependencies();
   }
 
   @override

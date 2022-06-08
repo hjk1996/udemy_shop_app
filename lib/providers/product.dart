@@ -24,16 +24,17 @@ class Product with ChangeNotifier {
   // isFavorite 변경되는 것만 notify하는 기능 추가.
   // Favorite 버튼 누르면 서버에 전송.
   // 즉각적으로 변했다가 실패하면 다시 변경
-  Future<void> toggleFavoriteStatus() async {
+  Future<void> toggleFavoriteStatus(String token, String userId) async {
     final url = Uri.parse(
-        'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/product/$id.json');
+        'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/userFavorites/$userId/$id.json?auth=$token');
 
     isFavorite = !isFavorite;
     notifyListeners();
 
+    // productId와 bool 값이 mapping됨 (put)
     try {
       final res =
-          await http.patch(url, body: json.encode({'isFavorite': isFavorite}));
+          await http.put(url, body: json.encode(isFavorite));
       print(res.body);
     } catch (error) {
       // 에러 발생하면 원복시킴

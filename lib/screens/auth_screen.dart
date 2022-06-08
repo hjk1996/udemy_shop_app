@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import './products_overview_screen.dart';
 import '../providers/auth.dart';
 import '../models/http_exception.dart';
 
@@ -140,6 +141,9 @@ class _AuthCardState extends State<AuthCard> {
         await Provider.of<Auth>(context, listen: false).signUp(
             _authData['email'] as String, _authData['password'] as String);
       }
+      
+      Navigator.of(context)
+          .pushReplacementNamed(ProductOverviewScreen.routeName);
     } on HttpException catch (error) {
       var errorMessage = 'Authentication failed';
       if (error.toString().contains("EMAIL_EXISTS")) {

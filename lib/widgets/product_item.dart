@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../screens/product_detail_screen.dart';
 import '../providers/cart.dart';
+import '../providers/auth.dart';
 
 class ProductItem extends StatelessWidget {
   // final String id;
@@ -13,11 +14,13 @@ class ProductItem extends StatelessWidget {
   // ProductItem({required this.id, required this.title, required this.imageUrl});
   Widget _buildFavoriteIconButton(
       BuildContext context, Product product, Widget? child) {
+    final authData = Provider.of<Auth>(context, listen: false);
     return IconButton(
         icon: Icon(product.isFavorite ? Icons.favorite : Icons.favorite_border),
         onPressed: () async {
           try {
-            await product.toggleFavoriteStatus();
+            await product.toggleFavoriteStatus(
+                authData.token!, authData.userId!);
           } catch (error) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text(
@@ -34,6 +37,7 @@ class ProductItem extends StatelessWidget {
     final product = Provider.of<Product>(context, listen: false);
     // cart에 아이템만 추가할 것이기 때문에 change를 듣지 않아도 됨.
     final cart = Provider.of<Cart>(context, listen: false);
+    final authData = Provider.of<Auth>(context, listen: false);
     print("product rebuilds");
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),

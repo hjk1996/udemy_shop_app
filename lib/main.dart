@@ -25,30 +25,49 @@ class MyApp extends StatelessWidget {
     // ChangeNotifierProvider를 이용해 데이터를 전해주기 위해서는 데이터를 전달받는 위젯이 위젯 트리의 하위에 있어야한다.
     // 여러 개의 Provider를 사용하기 위해서는 MultiProvider를 사용하자.
     return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => Auth()),
-        ChangeNotifierProvider(create: (context) => Products()),
-        ChangeNotifierProvider(create: (context) => Cart()),
-        ChangeNotifierProvider(create: (context) => Orders())
-      ],
-      child: MaterialApp(
-        title: 'My Shop',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          accentColor: Colors.red,
-          // default font
-          fontFamily: 'Lato',
-        ),
-        home: AuthScreen(),
-        routes: {
-          ProductDetailScreen.routeName: (ctx) => ProductDetailScreen(),
-          CartScreen.routeName: (ctx) => CartScreen(),
-          OrderScreen.routeName: (ctx) => OrderScreen(),
-          UserProductsScreen.routeName: (ctx) => UserProductsScreen(),
-          EditProductScreen.routeName: (ctx) => EditProductScreen(),
-      
-        },
-      ),
-    );
+        providers: [
+          ChangeNotifierProvider(create: (context) => Auth()),
+          // auth가 변경될 때마다 Provider 또한 rebuild된다.
+          // Auth의 데이터를 Products에 제공함.
+          ChangeNotifierProxyProvider<Auth, Products>(
+            update: ((context, auth, previousProducts) => Products(
+                auth.token!,
+                previousProducts == null ? [] : previousProducts.items,
+                auth.userId)),
+            create: (context) => Products(null, [], null),
+          ),
+          ChangeNotifierProvider(create: (context) => Cart()),
+          ChangeNotifierProxyProvider<Auth, Orders>(
+            update: (context, auth, previousOrders) => Orders(auth.token!,
+                previousOrders == null ? [] : previousOrders.orders),
+            create: (context) => Orders(null, []),
+          )
+        ],
+        // auth 상태가 변할때마다 MaterialApp이 rebuild됨.
+        child: Consumer<Auth>(
+          builder: (ctx, authData, child) {
+            return MaterialApp(
+              title: 'My Shop',
+              theme: ThemeData(
+                primarySwatch: Colors.blue,
+                accentColor: Colors.red,
+                // default font
+                fontFamily: 'Lato',
+              ),
+              // auth 상태에 따라 homepage가 변해야함.
+              // auth 상태면 ProductDtailScreen이 홈페이지고 아니면 AuthScreen이 홈페이지임.
+              home: authData.isAuth ? ProductOverviewScreen() : AuthScreen(),
+              routes: {
+                ProductOverviewScreen.routeName: (ctx) =>
+                    ProductOverviewScreen(),
+                ProductDetailScreen.routeName: (ctx) => ProductDetailScreen(),
+                CartScreen.routeName: (ctx) => CartScreen(),
+                OrderScreen.routeName: (ctx) => OrderScreen(),
+                UserProductsScreen.routeName: (ctx) => UserProductsScreen(),
+                EditProductScreen.routeName: (ctx) => EditProductScreen(),
+              },
+            );
+          },
+        ));
   }
 }

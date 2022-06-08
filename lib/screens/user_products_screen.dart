@@ -10,12 +10,15 @@ class UserProductsScreen extends StatelessWidget {
   static const routeName = "/user-product-screen";
 
   Future<void> _refreshProducts(BuildContext context) async {
-    await Provider.of<Products>(context, listen: false).fetchAndSetProducts();
+    await Provider.of<Products>(context, listen: false)
+        .fetchAndSetProducts(true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final productsProvider = Provider.of<Products>(context);
+    // FutureBuilder를 사용할 경우 build 내에서 provider의 listen을 true로 해놓으면 무한루프가 발생함.
+    // future가 실행되면서 provider의 state를 변경하고 그 state를 build 내에서 listen 하므로 다시 build가 계속 발생
+    print('Rebuilding User Products Screen..');
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Products'),
@@ -28,27 +31,38 @@ class UserProductsScreen extends StatelessWidget {
         ],
       ),
       drawer: AppDrawer(),
-      // RefreshIndicator를 통해 pull-to-refresh를 구현할 수 있다.
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await _refreshProducts(context);
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: ListView.builder(
-            itemCount: productsProvider.items.length,
-            itemBuilder: (ctx, idx) => Column(
-              children: [
-                UserProductItem(
-                  id: productsProvider.items[idx].id!,
-                  title: productsProvider.items[idx].title!,
-                  imageUrl: productsProvider.items[idx].imageUrl!,
-                ),
-                Divider()
-              ],
-            ),
-          ),
-        ),
+      // FutureBuilder를 이용해서 새로고침한 이후의 products를 products로 받아올 수 있다.
+      body: FutureBuilder(
+        future: _refreshProducts(context),
+        // RefreshIndicator를 통해 pull-to-refresh를 구현할 수 있다.
+        builder: (context, snapshot) =>
+            snapshot.connectionState == ConnectionState.waiting
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : RefreshIndicator(
+                    onRefresh: () async {
+                      await _refreshProducts(context);
+                    },
+                    child: Consumer<Products>(
+                      builder: ((context, products, child) => Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: ListView.builder(
+                              itemCount: products.items.length,
+                              itemBuilder: (ctx, idx) => Column(
+                                children: [
+                                  UserProductItem(
+                                    id: products.items[idx].id!,
+                                    title: products.items[idx].title!,
+                                    imageUrl: products.items[idx].imageUrl!,
+                                  ),
+                                  Divider()
+                                ],
+                              ),
+                            ),
+                          )),
+                    ),
+                  ),
       ),
     );
   }
