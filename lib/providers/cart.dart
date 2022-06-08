@@ -13,6 +13,8 @@ class CartItem {
       required this.title,
       required this.quantity,
       required this.price});
+
+
 }
 
 class Cart with ChangeNotifier {

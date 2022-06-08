@@ -15,8 +15,16 @@ class ProductItem extends StatelessWidget {
       BuildContext context, Product product, Widget? child) {
     return IconButton(
         icon: Icon(product.isFavorite ? Icons.favorite : Icons.favorite_border),
-        onPressed: () {
-          product.toggleFavoriteStatus();
+        onPressed: () async {
+          try {
+            await product.toggleFavoriteStatus();
+          } catch (error) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+              'An Error Occured.',
+              textAlign: TextAlign.center,
+            )));
+          }
         },
         color: Theme.of(context).accentColor);
   }

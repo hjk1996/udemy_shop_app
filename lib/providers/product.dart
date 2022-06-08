@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 // Product class 자체를 provider로 만들면서
 // Product의 property가 변하는 경우 widget이 알아챌 수 있도록 했음.
@@ -19,8 +22,24 @@ class Product with ChangeNotifier {
       this.isFavorite = false});
 
   // isFavorite 변경되는 것만 notify하는 기능 추가.
-  void toggleFavoriteStatus() {
+  // Favorite 버튼 누르면 서버에 전송.
+  // 즉각적으로 변했다가 실패하면 다시 변경
+  Future<void> toggleFavoriteStatus() async {
+    final url = Uri.parse(
+        'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/product/$id.json');
+
     isFavorite = !isFavorite;
     notifyListeners();
+
+    try {
+      final res =
+          await http.patch(url, body: json.encode({'isFavorite': isFavorite}));
+      print(res.body);
+    } catch (error) {
+      // 에러 발생하면 원복시킴
+      isFavorite = !isFavorite;
+      notifyListeners();
+      throw error;
+    }
   }
 }

@@ -78,7 +78,10 @@ class Products with ChangeNotifier {
 
     try {
       final res = await http.get(url);
-      final extractedData = json.decode(res.body) as Map<String, dynamic>;
+      final extractedData = json.decode(res.body) as Map<String, dynamic>?;
+      if (extractedData == null) {
+        return;
+      }
       final List<Product> loadedProducts = [];
 
       extractedData.forEach(
@@ -101,7 +104,6 @@ class Products with ChangeNotifier {
     }
   }
 
-  // 리스트 요소가 변경될 때만 notify함.
   Future<void> addProduct(Product item) async {
     final url = Uri.parse(
         'https://udemy-shop-app-dd13c-default-rtdb.firebaseio.com/products.json');

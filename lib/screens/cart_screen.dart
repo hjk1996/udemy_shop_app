@@ -36,25 +36,61 @@ class TotalPriceBar extends StatelessWidget {
               ),
               backgroundColor: Theme.of(context).accentColor,
             ),
-            TextButton(
-              onPressed: () {
-                final cartItemList = cart.items.values.toList();
-                // order의 변화는 들을 필요가 없음
-                Provider.of<Orders>(context, listen: false)
-                    .addOrder(cartItemList, cart.totalAmount);
-                // 하지만 카트를 비워야하므로 cart의 변화는 들어야함.
-                cart.clear();
-                if (cartItemList.isNotEmpty) {
-                  Navigator.of(context).pushNamed(OrderScreen.routeName);
-                }
-              },
-              child: Text('Order Now'),
-              style: TextButton.styleFrom(
-                  textStyle: TextStyle(color: Theme.of(context).primaryColor)),
-            )
+            OrderButton(cart: cart)
           ],
         ),
       ),
+    );
+  }
+}
+
+class OrderButton extends StatefulWidget {
+  const OrderButton({
+    Key? key,
+    required this.cart,
+  }) : super(key: key);
+
+  final Cart cart;
+
+  @override
+  State<OrderButton> createState() => _OrderButtonState();
+}
+
+class _OrderButtonState extends State<OrderButton> {
+  var _isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: (widget.cart.totalAmount <= 0 || _isLoading == true)
+          ? null
+          : () async {
+              setState(() {
+                _isLoading = true;
+              });
+
+              final cartItemList = widget.cart.items.values.toList();
+              // order의 변화는 들을 필요가 없음
+
+              try {
+                await Provider.of<Orders>(context, listen: false)
+                    .addOrder(cartItemList, widget.cart.totalAmount);
+
+                setState(() {
+                  _isLoading = false;
+                });
+
+                // 하지만 카트를 비워야하므로 cart의 변화는 들어야함.
+                if (cartItemList.isNotEmpty) {
+                  widget.cart.clear();
+                }
+              } catch (error) {
+                throw error;
+              }
+            },
+      child: _isLoading ? CircularProgressIndicator() : Text('Order Now'),
+      style: TextButton.styleFrom(
+          textStyle: TextStyle(color: Theme.of(context).primaryColor)),
     );
   }
 }
