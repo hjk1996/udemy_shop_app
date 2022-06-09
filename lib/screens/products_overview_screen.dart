@@ -25,27 +25,10 @@ class ProductOverviewScreen extends StatefulWidget {
 
 class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
   var _showOnlyFavorites = false;
-  var _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    setState(() {
-      _isLoading = true;
-    });
-    Provider.of<Products>(context, listen: false)
-        .fetchAndSetProducts()
-        .then((_) {
-      setState(() {
-        _isLoading = false;
-      });
-    });
-
-    super.didChangeDependencies();
   }
 
   @override
@@ -97,11 +80,19 @@ class _ProductOverviewScreenState extends State<ProductOverviewScreen> {
       ),
       // drawer는 옆에서 튀어나오는 햄버거 메뉴
       drawer: AppDrawer(),
-      body: _isLoading
-          ? Center(
+      body: FutureBuilder(
+        future:
+            Provider.of<Products>(context, listen: false).fetchAndSetProducts(),
+        builder: (ctx, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
               child: CircularProgressIndicator(),
-            )
-          : ProductsGrid(_showOnlyFavorites),
+            );
+          } else {
+            return ProductsGrid(_showOnlyFavorites);
+          }
+        },
+      ),
     );
   }
 }

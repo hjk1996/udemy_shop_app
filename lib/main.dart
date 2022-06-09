@@ -26,21 +26,24 @@ class MyApp extends StatelessWidget {
     // 여러 개의 Provider를 사용하기 위해서는 MultiProvider를 사용하자.
     return MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (context) => Auth()),
+          ChangeNotifierProvider(create: (context) => Auth(context)),
           // auth가 변경될 때마다 Provider 또한 rebuild된다.
           // Auth의 데이터를 Products에 제공함.
           ChangeNotifierProxyProvider<Auth, Products>(
             update: ((context, auth, previousProducts) => Products(
-                auth.token!,
+                auth.token,
                 previousProducts == null ? [] : previousProducts.items,
                 auth.userId)),
             create: (context) => Products(null, [], null),
           ),
           ChangeNotifierProvider(create: (context) => Cart()),
           ChangeNotifierProxyProvider<Auth, Orders>(
-            update: (context, auth, previousOrders) => Orders(auth.token!,
-                previousOrders == null ? [] : previousOrders.orders),
-            create: (context) => Orders(null, []),
+            update: (context, auth, previousOrders) => Orders(
+              auth.token,
+              auth.userId,
+              previousOrders == null ? [] : previousOrders.orders,
+            ),
+            create: (context) => Orders(null, null, []),
           )
         ],
         // auth 상태가 변할때마다 MaterialApp이 rebuild됨.
