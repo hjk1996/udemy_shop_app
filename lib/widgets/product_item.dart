@@ -47,9 +47,15 @@ class ProductItem extends StatelessWidget {
               .pushNamed(ProductDetailScreen.routeName, arguments: product.id);
         },
         child: GridTile(
-          child: Image.network(
-            product.imageUrl!,
-            fit: BoxFit.cover,
+          // 이미지 로딩되기 전에는 placeholder image를 보여주고
+          // 이미지 로딩이 완료되면 placeholder image에서 image로 fade됨.
+          child: Hero(
+            tag: product.id!,
+            child: FadeInImage(
+              placeholder: AssetImage('assets/images/product-placeholder.png'),
+              image: NetworkImage(product.imageUrl!),
+              fit: BoxFit.cover,
+            ),
           ),
           footer: GridTileBar(
             backgroundColor: Colors.black87,

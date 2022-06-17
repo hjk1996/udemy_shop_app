@@ -20,28 +20,34 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(10),
-      child: Column(
-        children: <Widget>[
-          ListTile(
-            title: Text('\$${widget.order.amount}'),
-            subtitle: Text(
-                DateFormat('dd/MM/yyyy hh:mm').format(widget.order.dateTime)),
-            trailing: IconButton(
-              icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
-              onPressed: () {
-                setState(() {
-                  _isExpanded = !_isExpanded;
-                });
-              },
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 300),
+      height:
+          _isExpanded ? min(widget.order.products.length * 20 + 110, 200) : 95,
+      child: Card(
+        margin: const EdgeInsets.all(10),
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              title: Text('\$${widget.order.amount}'),
+              subtitle: Text(
+                  DateFormat('dd/MM/yyyy hh:mm').format(widget.order.dateTime)),
+              trailing: IconButton(
+                icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more),
+                onPressed: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
+                },
+              ),
             ),
-          ),
-          if (_isExpanded)
-            Container(
+            AnimatedContainer(
+              duration: Duration(milliseconds: 300),
+              height: _isExpanded
+                  ? min(widget.order.products.length * 20 + 10, 100)
+                  : 0,
               padding: EdgeInsets.symmetric(horizontal: 15, vertical: 4),
               // 확장했을 떄 최대 사이즈 설정
-              height: min(widget.order.products.length * 20 + 10, 100),
               child: ListView(
                   children: widget.order.products
                       .map((prod) => Row(
@@ -61,7 +67,8 @@ class _OrderItemWidgetState extends State<OrderItemWidget> {
                           ))
                       .toList()),
             )
-        ],
+          ],
+        ),
       ),
     );
   }

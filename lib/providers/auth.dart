@@ -3,17 +3,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/http_exception.dart';
 
 class Auth with ChangeNotifier {
-  final BuildContext context;
   String? _token;
   DateTime? _expiryDate;
   String? _userId;
   Timer? _authTimer;
-
-  Auth(this.context);
 
   // 토큰이 있고 토큰이 만료되지 않았다면 유저는 authenticated 된 것임.
   bool get isAuth {
@@ -53,7 +51,6 @@ class Auth with ChangeNotifier {
       if (resBody['error'] != null) {
         throw HttpException(resBody['error']['message']);
       }
-
       _token = resBody['idToken'];
       _userId = resBody['localId'];
       // expiresIn은 토큰이 몇 초 동안 지속되는지 알려주는 값임.
@@ -62,6 +59,15 @@ class Auth with ChangeNotifier {
           .add(Duration(seconds: int.parse(resBody['expiresIn'])));
       _autoLogout();
       notifyListeners();
+      final prefs = await SharedPreferences.getInstance();
+      // user 데이터를 json으로 바꿔서
+      final userData = json.encode({
+        'token': _token,
+        'userId': _userId,
+        'expiryDate': _expiryDate!.toIso8601String()
+      });
+      // 로컬 저장소에 저장.
+      prefs.setString('userData', userData);
     } catch (error) {
       print(error);
       throw error;
@@ -76,8 +82,42 @@ class Auth with ChangeNotifier {
     return _authenticate(email, password, "signInWithPassword");
   }
 
+  Future<bool> tryAutoSignIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    // 로컬 저장소에 userData라는 이름의 data가 존재하지 않는다면
+    if (!prefs.containsKey('userData')) {
+      return false;
+    }
+    // 존재한다면 데이터 추출해서 맵으로 변환
+    final extractedUserData = json.decode(prefs.getString('userData') as String)
+        as Map<String, dynamic>;
+
+    final expiryDate = DateTime.parse(extractedUserData['expiryDate']);
+    print(extractedUserData['expiryDate']);
+
+    // 현재시점보다 만기일이 이전이라면 토큰 만료됐으므로 false 반환.
+    if (expiryDate.isBefore(DateTime.now())) {
+      return false;
+    }
+
+    // 만약 모두 정상이라면 state 설정하고 알리고 타이머 설정하고 true 반환
+    // 그리고 알리기
+    _token = extractedUserData['token'];
+    _userId = extractedUserData['userId'];
+    _expiryDate = expiryDate;
+    notifyListeners();
+    _autoLogout();
+    return true;
+  }
+
   // auth 정보를 모두 지움으로써 logout
-  void logout() {
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.remove("token");
+    await prefs.remove("userId");
+    await prefs.remove("expiryDate");
+
     _token = null;
     _userId = null;
     _expiryDate = null;
